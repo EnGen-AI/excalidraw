@@ -22,6 +22,7 @@ import type {
   Curve,
   GlobalPoint,
   LineSegment,
+  NonRotated,
   Radians,
 } from "@excalidraw/math";
 
@@ -189,7 +190,17 @@ export const hitElementItself = ({
   return result;
 };
 
-const getBoundsCorners = (bounds: Bounds, angle: Radians = 0 as Radians) => {
+export function getBoundsCorners(
+  bounds: Bounds,
+): readonly [GlobalPoint, GlobalPoint, GlobalPoint, GlobalPoint];
+export function getBoundsCorners(
+  bounds: NonRotated<Bounds>,
+  angle: Radians,
+): readonly [GlobalPoint, GlobalPoint, GlobalPoint, GlobalPoint];
+export function getBoundsCorners(
+  bounds: Bounds,
+  angle: Radians = 0 as Radians,
+) {
   const [x1, y1, x2, y2] = bounds;
   const center = getCenterForBounds(bounds);
   const corners = [
@@ -209,9 +220,9 @@ const getBoundsCorners = (bounds: Bounds, angle: Radians = 0 as Radians) => {
     GlobalPoint,
     GlobalPoint,
   ];
-};
+}
 
-const getBoundsEdges = (
+export const getBoundsEdges = (
   corners: readonly [GlobalPoint, GlobalPoint, GlobalPoint, GlobalPoint],
 ) =>
   [
@@ -223,7 +234,7 @@ const getBoundsEdges = (
 
 const isPointInRotatedBounds = (
   point: GlobalPoint,
-  bounds: Bounds,
+  bounds: NonRotated<Bounds>,
   angle: Radians,
   tolerance = 0,
 ) => {

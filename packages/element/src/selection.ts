@@ -19,13 +19,17 @@ import {
 } from "./bounds";
 import {
   doBoundsIntersectElementBoundingBox,
+  getBoundsCorners,
+  getBoundsEdges,
   intersectElementWithLineSegment,
+  isPointInElement,
   shouldTestInside,
 } from "./collision";
 import { isElementInViewport } from "./sizeHelpers";
 import {
   isBoundToContainer,
   isFrameLikeElement,
+  isFreeDrawElement,
   isLinearElement,
   isTextElement,
 } from "./typeChecks";
@@ -46,17 +50,15 @@ import type {
   NonDeletedExcalidrawElement,
 } from "./types";
 
-// Broad-phase only for overlap mode. This decides whether plain AABB overlap
-// should be refined via the element's rotated local bounds. Elements that fail
-// `shouldTestInside()` still go through the outline-specific path below, so
-// this is intentionally not the whole overlap-selection policy.
+// Broad-phase only for overlap mode. Rotated closed shapes should not select
+// from the empty corners of their axis-aligned bounds. Linear elements and
+// freedraw already rely on the outline-specific path below, so exclude them.
 const shouldUseRotatedOverlapBroadPhase = (
   element: NonDeletedExcalidrawElement,
 ) =>
   element.angle !== 0 &&
-  (isTextElement(element) ||
-    element.type === "freedraw" ||
-    element.type === "image");
+  !isLinearElement(element) &&
+  !isFreeDrawElement(element);
 
 const clipLineSegmentToBounds = (
   segment: LineSegment<GlobalPoint>,
@@ -112,6 +114,11 @@ const isPointWithinAabb = (point: GlobalPoint, bounds: Bounds) =>
   point[1] >= bounds[1] &&
   point[1] <= bounds[3];
 
+const shouldUsePreciseFilledOverlap = (element: NonDeletedExcalidrawElement) =>
+  element.type === "ellipse" ||
+  element.type === "diamond" ||
+  (element.type === "rectangle" && !!element.roundness);
+
 const shouldSkipElementFromSelection = (element: NonDeletedExcalidrawElement) =>
   element.locked || element.type === "selection" || isBoundToContainer(element);
 
@@ -147,38 +154,6 @@ const finalizeElementsInSelection = (
 
     return true;
   });
-};
-
-const getSelectionEdges = (
-  selectionBounds: Bounds,
-): readonly LineSegment<GlobalPoint>[] => {
-  const selectionTopLeft = pointFrom<GlobalPoint>(
-    selectionBounds[0],
-    selectionBounds[1],
-  );
-  const selectionBottomRight = pointFrom<GlobalPoint>(
-    selectionBounds[2],
-    selectionBounds[3],
-  );
-
-  return [
-    lineSegment(
-      selectionTopLeft,
-      pointFrom<GlobalPoint>(selectionBounds[2], selectionBounds[1]),
-    ),
-    lineSegment(
-      pointFrom<GlobalPoint>(selectionBounds[2], selectionBounds[1]),
-      selectionBottomRight,
-    ),
-    lineSegment(
-      selectionBottomRight,
-      pointFrom<GlobalPoint>(selectionBounds[0], selectionBounds[3]),
-    ),
-    lineSegment(
-      pointFrom<GlobalPoint>(selectionBounds[0], selectionBounds[3]),
-      selectionTopLeft,
-    ),
-  ];
 };
 
 const getVisibleElementOutlineSegments = (
@@ -219,6 +194,60 @@ const doesSelectionContainElementOutline = (
       isPointWithinAabb(outlineSegment[0], selectionBounds) &&
       isPointWithinAabb(outlineSegment[1], selectionBounds),
   );
+
+const doesSelectionContainElementInterior = (
+  element: NonDeletedExcalidrawElement,
+  frameBounds: Bounds | null,
+  selectionCorners: readonly GlobalPoint[],
+  elementsMap: ElementsMap,
+) =>
+  selectionCorners.some(
+    (selectionCorner) =>
+      (!frameBounds || isPointWithinAabb(selectionCorner, frameBounds)) &&
+      isPointInElement(selectionCorner, element, elementsMap),
+  );
+
+const doesSelectionOverlapFilledElement = (
+  element: NonDeletedExcalidrawElement,
+  frameBounds: Bounds | null,
+  selectionBounds: Bounds,
+  selectionCorners: readonly GlobalPoint[],
+  selectionEdges: readonly LineSegment<GlobalPoint>[],
+  elementsMap: ElementsMap,
+) => {
+  if (
+    doesSelectionContainElementInterior(
+      element,
+      frameBounds,
+      selectionCorners,
+      elementsMap,
+    )
+  ) {
+    return true;
+  }
+
+  if (
+    doesSelectionIntersectElementOutline(
+      element,
+      frameBounds,
+      selectionEdges,
+      elementsMap,
+    )
+  ) {
+    return true;
+  }
+
+  const outlineSegments = getVisibleElementOutlineSegments(
+    element,
+    frameBounds,
+    elementsMap,
+  );
+
+  return (
+    outlineSegments.length > 0 &&
+    doesSelectionContainElementOutline(outlineSegments, selectionBounds)
+  );
+};
 
 /**
  * Frames and their containing elements are not to be selected at the same time.
@@ -306,7 +335,8 @@ export const getElementsWithinSelection = (
     );
   }
 
-  const selectionEdges = getSelectionEdges(selectionBounds);
+  const selectionCorners = getBoundsCorners(selectionBounds);
+  const selectionEdges = getBoundsEdges(selectionCorners);
   const elementsInSelection: NonDeletedExcalidrawElement[] = [];
 
   for (const element of elements) {
@@ -353,7 +383,19 @@ export const getElementsWithinSelection = (
     const shouldSelectFromInside = shouldTestInside(element);
 
     if (shouldSelectFromInside) {
-      if (isSelectionOverlappingElement) {
+      if (
+        isSelectionOverlappingElement &&
+        (!shouldUsePreciseFilledOverlap(element) ||
+          isSelectionContainingElement ||
+          doesSelectionOverlapFilledElement(
+            element,
+            frameBounds,
+            selectionBounds,
+            selectionCorners,
+            selectionEdges,
+            elementsMap,
+          ))
+      ) {
         elementsInSelection.push(element);
       }
       continue;

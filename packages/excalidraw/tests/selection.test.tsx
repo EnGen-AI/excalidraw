@@ -3,7 +3,7 @@ import { vi } from "vitest";
 
 import { KEYS, ROUNDNESS, reseed } from "@excalidraw/common";
 import { getElementBounds, getElementLineSegments } from "@excalidraw/element";
-import { pointFrom, type LocalPoint } from "@excalidraw/math";
+import { pointFrom, pointRotateRads, type LocalPoint } from "@excalidraw/math";
 
 import { SHAPES } from "../components/shapes";
 
@@ -207,6 +207,42 @@ describe("box-selection overlap mode", () => {
     mouse.up();
   };
 
+  const boxSelectTopLeftAabbCorner = (
+    element: ReturnType<typeof API.createElement>,
+  ) => {
+    const sceneElement = API.getElement(element);
+    const elementsMap = h.scene.getNonDeletedElementsMap();
+    const [x1, y1] = getElementBounds(sceneElement, elementsMap);
+
+    boxSelect(x1 + 2, y1 + 2, x1 + 12, y1 + 12);
+  };
+
+  const boxSelectTopRightAabbCorner = (
+    element: ReturnType<typeof API.createElement>,
+  ) => {
+    const sceneElement = API.getElement(element);
+    const elementsMap = h.scene.getNonDeletedElementsMap();
+    const [, y1, x2] = getElementBounds(sceneElement, elementsMap);
+
+    boxSelect(x2 - 12, y1 + 2, x2 - 2, y1 + 12);
+  };
+
+  const boxSelectTopLeftRotatedLocalBoundsCorner = (
+    element: ReturnType<typeof API.createElement>,
+  ) => {
+    const sceneElement = API.getElement(element);
+    const elementsMap = h.scene.getNonDeletedElementsMap();
+    const [x1, y1, x2, y2] = getElementBounds(sceneElement, elementsMap, true);
+    const center = pointFrom((x1 + x2) / 2, (y1 + y2) / 2);
+    const [cornerX, cornerY] = pointRotateRads(
+      pointFrom(x1, y1),
+      center,
+      sceneElement.angle,
+    );
+
+    boxSelect(cornerX - 4, cornerY - 4, cornerX + 4, cornerY + 4);
+  };
+
   beforeEach(async () => {
     await render(
       <Excalidraw
@@ -325,6 +361,99 @@ describe("box-selection overlap mode", () => {
     );
 
     assertSelectedElements([rect.id]);
+  });
+
+  it("should not select a filled rotated rectangle when the selection box only overlaps its axis-aligned bounds", () => {
+    const rect = API.createElement({
+      type: "rectangle",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      angle: Math.PI / 4,
+      backgroundColor: "red",
+      fillStyle: "solid",
+    });
+
+    API.setElements([rect]);
+
+    boxSelectTopLeftAabbCorner(rect);
+
+    assertSelectedElements([]);
+  });
+
+  it("should not select a filled ellipse when the selection box only overlaps its bounds corner", () => {
+    const ellipse = API.createElement({
+      type: "ellipse",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      backgroundColor: "red",
+      fillStyle: "solid",
+    });
+
+    API.setElements([ellipse]);
+
+    boxSelectTopRightAabbCorner(ellipse);
+
+    assertSelectedElements([]);
+  });
+
+  it("should not select a filled diamond when the selection box only overlaps its bounds corner", () => {
+    const diamond = API.createElement({
+      type: "diamond",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      backgroundColor: "red",
+      fillStyle: "solid",
+    });
+
+    API.setElements([diamond]);
+
+    boxSelectTopRightAabbCorner(diamond);
+
+    assertSelectedElements([]);
+  });
+
+  it("should not select a filled rotated ellipse when the selection box only overlaps its axis-aligned bounds", () => {
+    const ellipse = API.createElement({
+      type: "ellipse",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      angle: Math.PI / 4,
+      backgroundColor: "red",
+      fillStyle: "solid",
+    });
+
+    API.setElements([ellipse]);
+
+    boxSelectTopLeftRotatedLocalBoundsCorner(ellipse);
+
+    assertSelectedElements([]);
+  });
+
+  it("should not select a filled rotated diamond when the selection box only overlaps its rotated local bounds", () => {
+    const diamond = API.createElement({
+      type: "diamond",
+      x: 0,
+      y: 0,
+      width: 100,
+      height: 100,
+      angle: Math.PI / 4,
+      backgroundColor: "red",
+      fillStyle: "solid",
+    });
+
+    API.setElements([diamond]);
+
+    boxSelectTopLeftRotatedLocalBoundsCorner(diamond);
+
+    assertSelectedElements([]);
   });
 
   it("should not select rotated text when the selection box only overlaps its axis-aligned bounds", () => {
