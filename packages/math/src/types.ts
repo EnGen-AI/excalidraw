@@ -1,4 +1,15 @@
 //
+// Generic markers
+//
+
+/**
+ * Can be used for any type of point-likes to mark them as rotated to enlist
+ * the type checker to weed out subtle bugs due to rotated and non-rotated
+ * versions of the same data point.
+ */
+export type Rotated<T> = T & { _brand_rotated: "excalimath_rotated" };
+
+//
 // Measurements
 //
 
@@ -22,12 +33,6 @@ export type Degrees = number & { _brand: "excalimath_degree" };
  * A number range which includes the start and end numbers in the range.
  */
 export type InclusiveRange = [number, number] & { _brand: "excalimath_degree" };
-
-/**
- * Can be used for any type of point-likes that are non-rotated, such as
- * non-AABB Bounds, or non-rotated Point.
- */
-export type NonRotated<T> = T & { _brand_nonrotated: "excalimath_nonrotated" };
 
 //
 // Point

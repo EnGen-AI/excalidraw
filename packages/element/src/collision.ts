@@ -1,4 +1,9 @@
-import { invariant, isTransparent, type Bounds } from "@excalidraw/common";
+import {
+  bounds,
+  invariant,
+  isTransparent,
+  type Bounds,
+} from "@excalidraw/common";
 import {
   curveIntersectLineSegment,
   isPointWithinBounds,
@@ -22,7 +27,6 @@ import type {
   Curve,
   GlobalPoint,
   LineSegment,
-  NonRotated,
   Radians,
 } from "@excalidraw/math";
 
@@ -30,7 +34,7 @@ import type { FrameNameBounds } from "@excalidraw/excalidraw/types";
 
 import { isPathALoop } from "./utils";
 import {
-  doBoundsIntersect,
+  doNonRotatedBoundsIntersect,
   elementCenterPoint,
   getCenterForBounds,
   getCubicBezierCurveBound,
@@ -194,7 +198,7 @@ export function getBoundsCorners(
   bounds: Bounds,
 ): readonly [GlobalPoint, GlobalPoint, GlobalPoint, GlobalPoint];
 export function getBoundsCorners(
-  bounds: NonRotated<Bounds>,
+  bounds: Bounds,
   angle: Radians,
 ): readonly [GlobalPoint, GlobalPoint, GlobalPoint, GlobalPoint];
 export function getBoundsCorners(
@@ -234,7 +238,7 @@ export const getBoundsEdges = (
 
 const isPointInRotatedBounds = (
   point: GlobalPoint,
-  bounds: NonRotated<Bounds>,
+  bounds: Bounds,
   angle: Radians,
   tolerance = 0,
 ) => {
@@ -344,9 +348,13 @@ const bindingBorderTest = (
   // PERF: Run a cheap test to see if the binding element
   // is even close to the element
   const t = Math.max(1, tolerance);
-  const bounds = [x - t, y - t, x + t, y + t] as Bounds;
-  const elementBounds = getElementBounds(element, elementsMap);
-  if (!doBoundsIntersect(bounds, elementBounds)) {
+  const elementBounds = getElementBounds(element, elementsMap, true);
+  if (
+    !doNonRotatedBoundsIntersect(
+      bounds(x - t, y - t, x + t, y + t),
+      elementBounds,
+    )
+  ) {
     return false;
   }
 
@@ -357,6 +365,7 @@ const bindingBorderTest = (
       const enclosingFrameBounds = getElementBounds(
         enclosingFrame,
         elementsMap,
+        true,
       );
       if (!pointInsideBounds(p, enclosingFrameBounds)) {
         return false;
@@ -506,15 +515,15 @@ export const intersectElementWithLineSegment = (
 ): GlobalPoint[] => {
   // First check if the line intersects the element's axis-aligned bounding box
   // as it is much faster than checking intersection against the element's shape
-  const intersectorBounds = [
+  const intersectorBounds = bounds(
     Math.min(line[0][0] - offset, line[1][0] - offset),
     Math.min(line[0][1] - offset, line[1][1] - offset),
     Math.max(line[0][0] + offset, line[1][0] + offset),
     Math.max(line[0][1] + offset, line[1][1] + offset),
-  ] as Bounds;
-  const elementBounds = getElementBounds(element, elementsMap);
+  );
+  const elementBounds = getElementBounds(element, elementsMap, true);
 
-  if (!doBoundsIntersect(intersectorBounds, elementBounds)) {
+  if (!doNonRotatedBoundsIntersect(intersectorBounds, elementBounds)) {
     return [];
   }
 
@@ -573,14 +582,14 @@ const curveIntersections = (
   for (const c of curves) {
     // Optimize by doing a cheap bounding box check first
     const b1 = getCubicBezierCurveBound(c[0], c[1], c[2], c[3]);
-    const b2 = [
+    const b2 = bounds(
       Math.min(segment[0][0], segment[1][0]),
       Math.min(segment[0][1], segment[1][1]),
       Math.max(segment[0][0], segment[1][0]),
       Math.max(segment[0][1], segment[1][1]),
-    ] as Bounds;
+    );
 
-    if (!doBoundsIntersect(b1, b2)) {
+    if (!doNonRotatedBoundsIntersect(b1, b2)) {
       continue;
     }
 
@@ -650,14 +659,14 @@ const intersectLinearOrFreeDrawWithLineSegment = (
   for (const c of curves) {
     // Optimize by doing a cheap bounding box check first
     const b1 = getCubicBezierCurveBound(c[0], c[1], c[2], c[3]);
-    const b2 = [
+    const b2 = bounds(
       Math.min(segment[0][0], segment[1][0]),
       Math.min(segment[0][1], segment[1][1]),
       Math.max(segment[0][0], segment[1][0]),
       Math.max(segment[0][1], segment[1][1]),
-    ] as Bounds;
+    );
 
-    if (!doBoundsIntersect(b1, b2)) {
+    if (!doNonRotatedBoundsIntersect(b1, b2)) {
       continue;
     }
 

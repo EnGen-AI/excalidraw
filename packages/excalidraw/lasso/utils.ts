@@ -10,7 +10,7 @@ import { type Bounds } from "@excalidraw/common";
 
 import {
   computeBoundTextPosition,
-  doBoundsIntersect,
+  doNonRotatedBoundsIntersect,
   getBoundTextElement,
   getElementBounds,
   intersectElementWithLineSegment,
@@ -66,7 +66,7 @@ export const getLassoSelectedElementIds = (input: {
     const elementBounds = getElementBounds(element, elementsMap);
 
     if (
-      doBoundsIntersect(lassoBounds, elementBounds) &&
+      doNonRotatedBoundsIntersect(lassoBounds, elementBounds) &&
       !intersectedElements.has(element.id) &&
       !enclosedElements.has(element.id)
     ) {

@@ -246,7 +246,7 @@ import {
   bindOrUnbindBindingElement,
   mutateElement,
   getElementBounds,
-  doBoundsIntersect,
+  doNonRotatedBoundsIntersect,
   isPointInElement,
   maxBindingDistance_simple,
   convertToExcalidrawElements,
@@ -1154,7 +1154,7 @@ class App extends React.Component<AppProps, AppState> {
         startBounds &&
         endBounds &&
         startElement.id !== endElement.id &&
-        doBoundsIntersect(startBounds, endBounds)
+        doNonRotatedBoundsIntersect(startBounds, endBounds)
       );
     }
 

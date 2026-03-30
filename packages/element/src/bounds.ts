@@ -2,9 +2,11 @@ import rough from "roughjs/bin/rough";
 
 import {
   arrayToMap,
+  bounds,
   type Bounds,
   invariant,
   rescalePoints,
+  type RotatedBounds,
   sizeOf,
 } from "@excalidraw/common";
 
@@ -27,7 +29,6 @@ import type {
   GlobalPoint,
   LineSegment,
   LocalPoint,
-  NonRotated,
   Radians,
 } from "@excalidraw/math";
 
@@ -91,7 +92,7 @@ export class ElementBounds {
   private static boundsCache = new WeakMap<
     ExcalidrawElement,
     {
-      bounds: Bounds;
+      bounds: RotatedBounds;
       version: ExcalidrawElement["version"];
     }
   >();
@@ -103,11 +104,11 @@ export class ElementBounds {
     }
   >();
 
-  static getBounds(
+  static getBounds<T extends boolean = false>(
     element: ExcalidrawElement,
     elementsMap: ElementsMap,
-    nonRotated: boolean = false,
-  ) {
+    nonRotated: T = false as T,
+  ): T extends true ? Bounds : RotatedBounds {
     const cachedBounds =
       nonRotated && element.angle !== 0
         ? ElementBounds.nonRotatedBoundsCache.get(element)
@@ -120,40 +121,41 @@ export class ElementBounds {
       // which is causing problems down the line. Fix TBA.
       !isBoundToContainer(element)
     ) {
-      return cachedBounds.bounds;
+      return cachedBounds.bounds as T extends true ? Bounds : RotatedBounds;
     }
 
     if (nonRotated && element.angle !== 0) {
-      const nonRotatedBounds = ElementBounds.calculateBounds(
+      const [minX, minY, maxX, maxY] = ElementBounds.calculateBounds(
         {
           ...element,
           angle: 0 as Radians,
         },
         elementsMap,
       );
+      const nonRotatedBounds = bounds(minX, minY, maxX, maxY);
       ElementBounds.nonRotatedBoundsCache.set(element, {
         version: element.version,
         bounds: nonRotatedBounds,
       });
 
-      return nonRotatedBounds;
+      return nonRotatedBounds as T extends true ? Bounds : RotatedBounds;
     }
 
-    const bounds = ElementBounds.calculateBounds(element, elementsMap);
+    const _bounds = ElementBounds.calculateBounds(element, elementsMap);
 
     ElementBounds.boundsCache.set(element, {
       version: element.version,
-      bounds,
+      bounds: _bounds,
     });
 
-    return bounds;
+    return _bounds as T extends true ? Bounds : RotatedBounds;
   }
 
   private static calculateBounds(
     element: ExcalidrawElement,
     elementsMap: ElementsMap,
-  ): Bounds {
-    let bounds: Bounds;
+  ): RotatedBounds {
+    let _bounds: RotatedBounds;
 
     const [x1, y1, x2, y2, cx, cy] = getElementAbsoluteCoords(
       element,
@@ -170,14 +172,15 @@ export class ElementBounds {
         ),
       );
 
-      return [
+      return bounds(
         minX + element.x,
         minY + element.y,
         maxX + element.x,
         maxY + element.y,
-      ];
+        element.angle,
+      );
     } else if (isLinearElement(element)) {
-      bounds = getLinearElementRotatedBounds(element, cx, cy, elementsMap);
+      _bounds = getLinearElementRotatedBounds(element, cx, cy, elementsMap);
     } else if (element.type === "diamond") {
       const [x11, y11] = pointRotateRads(
         pointFrom(cx, y1),
@@ -203,7 +206,7 @@ export class ElementBounds {
       const minY = Math.min(y11, y12, y22, y21);
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
-      bounds = [minX, minY, maxX, maxY];
+      _bounds = bounds(minX, minY, maxX, maxY, element.angle);
     } else if (element.type === "ellipse") {
       const w = (x2 - x1) / 2;
       const h = (y2 - y1) / 2;
@@ -211,7 +214,7 @@ export class ElementBounds {
       const sin = Math.sin(element.angle);
       const ww = Math.hypot(w * cos, h * sin);
       const hh = Math.hypot(h * cos, w * sin);
-      bounds = [cx - ww, cy - hh, cx + ww, cy + hh];
+      _bounds = bounds(cx - ww, cy - hh, cx + ww, cy + hh, element.angle);
     } else {
       const [x11, y11] = pointRotateRads(
         pointFrom(x1, y1),
@@ -237,10 +240,10 @@ export class ElementBounds {
       const minY = Math.min(y11, y12, y22, y21);
       const maxX = Math.max(x11, x12, x22, x21);
       const maxY = Math.max(y11, y12, y22, y21);
-      bounds = [minX, minY, maxX, maxY];
+      _bounds = bounds(minX, minY, maxX, maxY, element.angle);
     }
 
-    return bounds;
+    return _bounds;
   }
 }
 
@@ -625,7 +628,7 @@ export const getCubicBezierCurveBound = (
     minY = Math.min(minY, ...ys);
     maxY = Math.max(maxY, ...ys);
   }
-  return [minX, minY, maxX, maxY];
+  return bounds(minX, minY, maxX, maxY);
 };
 
 export const getMinMaxXYFromCurvePathOps = (
@@ -678,7 +681,7 @@ export const getMinMaxXYFromCurvePathOps = (
     },
     { minX: Infinity, minY: Infinity, maxX: -Infinity, maxY: -Infinity },
   );
-  return [minX, minY, maxX, maxY];
+  return bounds(minX, minY, maxX, maxY);
 };
 
 export const getBoundsFromPoints = (
@@ -696,7 +699,7 @@ export const getBoundsFromPoints = (
     maxY = Math.max(maxY, y);
   }
 
-  return [minX, minY, maxX, maxY];
+  return bounds(minX, minY, maxX, maxY);
 };
 
 const getFreeDrawElementAbsoluteCoords = (
@@ -939,7 +942,7 @@ const getLinearElementRotatedBounds = (
   cx: number,
   cy: number,
   elementsMap: ElementsMap,
-): Bounds => {
+): RotatedBounds => {
   const boundTextElement = getBoundTextElement(element, elementsMap);
 
   if (element.points.length < 2) {
@@ -950,20 +953,21 @@ const getLinearElementRotatedBounds = (
       element.angle,
     );
 
-    let coords: Bounds = [x, y, x, y];
+    let coords: RotatedBounds = bounds(x, y, x, y, element.angle);
     if (boundTextElement) {
       const coordsWithBoundText = LinearElementEditor.getMinMaxXYWithBoundText(
         element,
         elementsMap,
-        [x, y, x, y],
+        bounds(x, y, x, y, element.angle),
         boundTextElement,
       );
-      coords = [
+      coords = bounds(
         coordsWithBoundText[0],
         coordsWithBoundText[1],
         coordsWithBoundText[2],
         coordsWithBoundText[3],
-      ];
+        element.angle,
+      );
     }
     return coords;
   }
@@ -979,7 +983,13 @@ const getLinearElementRotatedBounds = (
       element.angle,
     );
   const res = getMinMaxXYFromCurvePathOps(ops, transformXY);
-  let coords: Bounds = [res[0], res[1], res[2], res[3]];
+  let coords: RotatedBounds = bounds(
+    res[0],
+    res[1],
+    res[2],
+    res[3],
+    element.angle,
+  );
   if (boundTextElement) {
     const coordsWithBoundText = LinearElementEditor.getMinMaxXYWithBoundText(
       element,
@@ -987,12 +997,13 @@ const getLinearElementRotatedBounds = (
       coords,
       boundTextElement,
     );
-    coords = [
+    coords = bounds(
       coordsWithBoundText[0],
       coordsWithBoundText[1],
       coordsWithBoundText[2],
       coordsWithBoundText[3],
-    ];
+      element.angle,
+    );
   }
   return coords;
 };
@@ -1001,12 +1012,8 @@ export const getElementBounds = <T extends boolean = false>(
   element: ExcalidrawElement,
   elementsMap: ElementsMap,
   nonRotated: T = false as T,
-): T extends true ? NonRotated<Bounds> : Bounds => {
-  return ElementBounds.getBounds(
-    element,
-    elementsMap,
-    nonRotated,
-  ) as T extends true ? NonRotated<Bounds> : Bounds;
+) => {
+  return ElementBounds.getBounds<T>(element, elementsMap, nonRotated);
 };
 
 export const getCommonBounds = (
@@ -1014,7 +1021,7 @@ export const getCommonBounds = (
   elementsMap?: ElementsMap,
 ): Bounds => {
   if (!sizeOf(elements)) {
-    return [0, 0, 0, 0];
+    return bounds(0, 0, 0, 0);
   }
 
   let minX = Infinity;
@@ -1032,7 +1039,7 @@ export const getCommonBounds = (
     maxY = Math.max(maxY, y2);
   });
 
-  return [minX, minY, maxX, maxY];
+  return bounds(minX, minY, maxX, maxY);
 };
 
 export const getDraggedElementsBounds = (
@@ -1055,12 +1062,12 @@ export const getResizedElementAbsoluteCoords = (
   normalizePoints: boolean,
 ): Bounds => {
   if (!(isLinearElement(element) || isFreeDrawElement(element))) {
-    return [
+    return bounds(
       element.x,
       element.y,
       element.x + nextWidth,
       element.y + nextHeight,
-    ];
+    );
   }
 
   const points = rescalePoints(
@@ -1070,11 +1077,11 @@ export const getResizedElementAbsoluteCoords = (
     normalizePoints,
   );
 
-  let bounds: Bounds;
+  let _bounds: Bounds;
 
   if (isFreeDrawElement(element)) {
     // Free Draw
-    bounds = getBoundsFromPoints(points);
+    _bounds = getBoundsFromPoints(points);
   } else {
     // Line
     const gen = rough.generator();
@@ -1086,16 +1093,16 @@ export const getResizedElementAbsoluteCoords = (
       : gen.curve(points as [number, number][], generateRoughOptions(element));
 
     const ops = getCurvePathOps(curve);
-    bounds = getMinMaxXYFromCurvePathOps(ops);
+    _bounds = getMinMaxXYFromCurvePathOps(ops);
   }
 
-  const [minX, minY, maxX, maxY] = bounds;
-  return [
+  const [minX, minY, maxX, maxY] = _bounds;
+  return bounds(
     minX + element.x,
     minY + element.y,
     maxX + element.x,
     maxY + element.y,
-  ];
+  );
 };
 
 export const getElementPointsCoords = (
@@ -1113,20 +1120,20 @@ export const getElementPointsCoords = (
       : gen.curve(points as [number, number][], generateRoughOptions(element));
   const ops = getCurvePathOps(curve);
   const [minX, minY, maxX, maxY] = getMinMaxXYFromCurvePathOps(ops);
-  return [
+  return bounds(
     minX + element.x,
     minY + element.y,
     maxX + element.x,
     maxY + element.y,
-  ];
+  );
 };
 
 export const getClosestElementBounds = (
   elements: readonly ExcalidrawElement[],
   from: { x: number; y: number },
-): Bounds => {
+): RotatedBounds => {
   if (!elements.length) {
-    return [0, 0, 0, 0];
+    return bounds(0, 0, 0, 0, 0 as Radians);
   }
 
   let minDistance = Infinity;
@@ -1195,7 +1202,9 @@ export const getVisibleSceneBounds = ({
   ];
 };
 
-export const getCenterForBounds = (bounds: Bounds): GlobalPoint =>
+export const getCenterForBounds = (
+  bounds: Bounds | RotatedBounds,
+): GlobalPoint =>
   pointFrom(
     bounds[0] + (bounds[2] - bounds[0]) / 2,
     bounds[1] + (bounds[3] - bounds[1]) / 2,
@@ -1240,24 +1249,24 @@ export const aabbForElement = (
     element.angle,
   );
 
-  const bounds = [
+  const _bounds = bounds(
     Math.min(topLeftX, topRightX, bottomRightX, bottomLeftX),
     Math.min(topLeftY, topRightY, bottomRightY, bottomLeftY),
     Math.max(topLeftX, topRightX, bottomRightX, bottomLeftX),
     Math.max(topLeftY, topRightY, bottomRightY, bottomLeftY),
-  ] as Bounds;
+  );
 
   if (offset) {
     const [topOffset, rightOffset, downOffset, leftOffset] = offset;
-    return [
-      bounds[0] - leftOffset,
-      bounds[1] - topOffset,
-      bounds[2] + rightOffset,
-      bounds[3] + downOffset,
-    ] as Bounds;
+    return bounds(
+      _bounds[0] - leftOffset,
+      _bounds[1] - topOffset,
+      _bounds[2] + rightOffset,
+      _bounds[3] + downOffset,
+    );
   }
 
-  return bounds;
+  return _bounds;
 };
 
 export const pointInsideBounds = <P extends GlobalPoint | LocalPoint>(
@@ -1266,7 +1275,7 @@ export const pointInsideBounds = <P extends GlobalPoint | LocalPoint>(
 ): boolean =>
   p[0] > bounds[0] && p[0] < bounds[2] && p[1] > bounds[1] && p[1] < bounds[3];
 
-export const doBoundsIntersect = (
+export const doNonRotatedBoundsIntersect = (
   bounds1: Bounds | null,
   bounds2: Bounds | null,
 ): boolean => {

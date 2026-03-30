@@ -2,7 +2,7 @@ import { arrayToMap, easeOut, THEME } from "@excalidraw/common";
 
 import {
   computeBoundTextPosition,
-  doBoundsIntersect,
+  doNonRotatedBoundsIntersect,
   getBoundTextElement,
   getElementBounds,
   getElementLineSegments,
@@ -219,7 +219,7 @@ const eraserTest = (
     origElementBounds[3] + threshold,
   ];
 
-  if (!doBoundsIntersect(segmentBounds, elementBounds)) {
+  if (!doNonRotatedBoundsIntersect(segmentBounds, elementBounds)) {
     return false;
   }
 

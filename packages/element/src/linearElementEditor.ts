@@ -21,6 +21,7 @@ import {
   invariant,
   isShallowEqual,
   getFeatureFlag,
+  bounds,
 } from "@excalidraw/common";
 
 import {
@@ -42,7 +43,7 @@ import type {
   NullableGridSize,
   Zoom,
 } from "@excalidraw/excalidraw/types";
-import type { Bounds } from "@excalidraw/common";
+import type { RotatedBounds } from "@excalidraw/common";
 
 import {
   calculateFixedPointForNonElbowArrowBinding,
@@ -1879,7 +1880,7 @@ export class LinearElementEditor {
   static getMinMaxXYWithBoundText = (
     element: ExcalidrawLinearElement,
     elementsMap: ElementsMap,
-    elementBounds: Bounds,
+    elementBounds: RotatedBounds,
     boundTextElement: ExcalidrawTextElementWithContainer,
   ): [number, number, number, number, number, number] => {
     let [x1, y1, x2, y2] = elementBounds;
@@ -2004,7 +2005,7 @@ export class LinearElementEditor {
       return LinearElementEditor.getMinMaxXYWithBoundText(
         element,
         elementsMap,
-        [x1, y1, x2, y2],
+        bounds(x1, y1, x2, y2, element.angle),
         boundTextElement,
       );
     }

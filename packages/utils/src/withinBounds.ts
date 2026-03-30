@@ -1,4 +1,9 @@
-import { arrayToMap, type Bounds } from "@excalidraw/common";
+import {
+  arrayToMap,
+  bounds,
+  type RotatedBounds,
+  type Bounds,
+} from "@excalidraw/common";
 import { getElementBounds } from "@excalidraw/element";
 import {
   isArrowElement,
@@ -90,7 +95,7 @@ const getMinMaxPoints = (points: Points) => {
   return ret;
 };
 
-const getRotatedBBox = (element: Element): Bounds => {
+const getRotatedBBox = (element: Element): RotatedBounds => {
   const points = getElementRelativePoints(element);
 
   const { cx, cy } = getMinMaxPoints(points);
@@ -101,12 +106,13 @@ const getRotatedBBox = (element: Element): Bounds => {
   );
   const { minX, minY, maxX, maxY } = getMinMaxPoints(rotatedPoints);
 
-  return [
+  return bounds(
     minX + element.x,
     minY + element.y,
     maxX + element.x,
     maxY + element.y,
-  ];
+    element.angle,
+  );
 };
 
 export const isElementInsideBBox = (
@@ -160,12 +166,12 @@ export const elementPartiallyOverlapsWithOrContainsBBox = (
 
 export const elementsOverlappingBBox = ({
   elements,
-  bounds,
+  bounds: _bounds,
   type,
   errorMargin = 0,
 }: {
   elements: Elements;
-  bounds: Bounds | ExcalidrawElement;
+  bounds: RotatedBounds | ExcalidrawElement;
   /** safety offset. Defaults to 0. */
   errorMargin?: number;
   /**
@@ -175,15 +181,16 @@ export const elementsOverlappingBBox = ({
    **/
   type: "overlap" | "contain" | "inside";
 }) => {
-  if (isExcalidrawElement(bounds)) {
-    bounds = getElementBounds(bounds, arrayToMap(elements));
+  if (isExcalidrawElement(_bounds)) {
+    _bounds = getElementBounds(_bounds, arrayToMap(elements));
   }
-  const adjustedBBox: Bounds = [
-    bounds[0] - errorMargin,
-    bounds[1] - errorMargin,
-    bounds[2] + errorMargin,
-    bounds[3] + errorMargin,
-  ];
+  const adjustedBBox = bounds(
+    _bounds[0] - errorMargin,
+    _bounds[1] - errorMargin,
+    _bounds[2] + errorMargin,
+    _bounds[3] + errorMargin,
+    _bounds[4],
+  );
 
   const includedElementSet = new Set<string>();
 
