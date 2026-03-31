@@ -24,7 +24,7 @@ export const AppFooter = React.memo(
               color: "inherit",
             }}
           >
-            EnGenAI Draw
+            EnGenAI-Draw
           </span>
         </div>
       </Footer>

@@ -23,7 +23,7 @@ const BraveMeasureTextError = () => {
       <p>
         If disabling this setting does not fix text rendering, open an{" "}
         <a href="https://github.com/EnGen-AI/excalidraw/issues/new">issue</a>{" "}
-        in the EnGenAI Draw fork or contact{" "}
+        in the EnGenAI-Draw fork or contact{" "}
         <a href="mailto:support@engenai.app">support</a>.
       </p>
     </div>

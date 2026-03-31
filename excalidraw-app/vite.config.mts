@@ -212,8 +212,8 @@ export default defineConfig(({ mode }) => {
           maximumFileSizeToCacheInBytes: 2.3 * 1024 ** 2, // 2.3MB
         },
         manifest: {
-          short_name: "EnGenAI Draw",
-          name: "EnGenAI Draw",
+          short_name: "EnGenAI-Draw",
+          name: "EnGenAI-Draw",
           description:
             "Secure visual whiteboard for EnGenAI teams.",
           icons: [

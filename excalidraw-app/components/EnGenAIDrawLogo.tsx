@@ -7,9 +7,9 @@ export const EnGenAIDrawLogo = ({
 }) => {
   return (
     <svg
-      aria-label="EnGenAI Draw"
+      aria-label="EnGenAI-Draw"
       role="img"
-      viewBox="0 0 420 72"
+      viewBox="0 0 510 72"
       style={{ display: "block", height, width: "auto" }}
     >
       <g fill="currentColor" transform="translate(2 8)">
@@ -18,24 +18,24 @@ export const EnGenAIDrawLogo = ({
       </g>
       <text
         x="78"
-        y="41"
+        y="44"
         fill="currentColor"
         fontFamily="Assistant, 'Avenir Next', 'Segoe UI', sans-serif"
-        fontSize="31"
+        fontSize="32"
         fontWeight="700"
         letterSpacing="0.2"
       >
         EnGenAI
       </text>
       <text
-        x="228"
-        y="48"
+        x="198"
+        y="46"
         fill="#58c29f"
         fontFamily="Excalifont, Virgil, 'Chalkboard SE', 'Bradley Hand', 'Comic Sans MS', cursive"
-        fontSize="33"
-        letterSpacing="0.3"
+        fontSize="32"
+        letterSpacing="0.15"
       >
-        Draw
+        -Draw
       </text>
     </svg>
   );
