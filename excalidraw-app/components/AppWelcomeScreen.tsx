@@ -16,7 +16,11 @@ export const AppWelcomeScreen: React.FC<{
       <WelcomeScreen.Hints.ToolbarHint />
       <WelcomeScreen.Hints.HelpHint />
       <WelcomeScreen.Center>
-        <WelcomeScreen.Center.Logo />
+        <WelcomeScreen.Center.Logo>
+          <div style={{ fontSize: "2rem", fontWeight: 700 }}>
+            EnGenAI Draw
+          </div>
+        </WelcomeScreen.Center.Logo>
         <WelcomeScreen.Center.Heading>
           {t("welcomeScreen.app.center_heading")}
           <br />
@@ -27,11 +31,6 @@ export const AppWelcomeScreen: React.FC<{
         <WelcomeScreen.Center.Menu>
           <WelcomeScreen.Center.MenuItemLoadScene />
           <WelcomeScreen.Center.MenuItemHelp />
-          {props.isCollabEnabled && (
-            <WelcomeScreen.Center.MenuItemLiveCollaborationTrigger
-              onSelect={() => props.onCollabDialogOpen()}
-            />
-          )}
         </WelcomeScreen.Center.Menu>
       </WelcomeScreen.Center>
     </WelcomeScreen>
