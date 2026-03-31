@@ -11,6 +11,7 @@ import type {
   SocketId,
 } from "@excalidraw/excalidraw/types";
 
+import { getProjectId, getFilePath } from "../data/auth";
 import { WS_EVENTS, FILE_UPLOAD_TIMEOUT, WS_SUBTYPES } from "../app_constants";
 import { isSyncableElement } from "../data";
 

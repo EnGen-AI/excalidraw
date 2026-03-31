@@ -51,6 +51,7 @@ import type {
 } from "@excalidraw/excalidraw/types";
 import type { Mutable, ValueOf } from "@excalidraw/common/utility-types";
 
+import { getToken } from "../data/auth";
 import { appJotaiStore, atom } from "../app-jotai";
 import {
   CURSOR_SYNC_TIMEOUT,
@@ -523,6 +524,9 @@ class Collab extends PureComponent<CollabProps, CollabState> {
       this.portal.socket = this.portal.open(
         socketIOClient(import.meta.env.VITE_APP_WS_SERVER_URL, {
           transports: ["websocket", "polling"],
+          auth: {
+            token: getToken(),
+          },
         }),
         roomId,
         roomKey,

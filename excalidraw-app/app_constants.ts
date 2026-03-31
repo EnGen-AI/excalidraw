@@ -29,6 +29,7 @@ export enum WS_SUBTYPES {
   USER_VISIBLE_SCENE_BOUNDS = "USER_VISIBLE_SCENE_BOUNDS",
 }
 
+// Firebase storage prefixes — kept for import compatibility, unused in self-hosted mode
 export const FIREBASE_STORAGE_PREFIXES = {
   shareLinkFiles: `/files/shareLinks`,
   collabFiles: `/files/rooms`,

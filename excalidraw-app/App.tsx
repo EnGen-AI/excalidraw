@@ -39,14 +39,9 @@ import { loadFromBlob } from "@excalidraw/excalidraw/data/blob";
 import { t } from "@excalidraw/excalidraw/i18n";
 
 import {
-  GithubIcon,
-  XBrandIcon,
-  DiscordIcon,
   ExcalLogo,
   usersIcon,
-  exportToPlus,
   share,
-  youtubeIcon,
 } from "@excalidraw/excalidraw/components/icons";
 import { isElementLink } from "@excalidraw/element";
 import {
@@ -123,6 +118,10 @@ import {
 } from "./data/localStorage";
 
 import { loadFilesFromFirebase } from "./data/firebase";
+import { parseFragmentAuth, getSession, getProjectId, getFilePath, setFilePath } from "./data/auth";
+import { loadFromVault, saveToVault } from "./data/vault";
+import { UnauthScreen } from "./components/UnauthScreen";
+import { VaultFilePicker } from "./components/VaultFilePicker";
 import {
   LibraryIndexedDBAdapter,
   LibraryLocalStorageMigrationAdapter,
@@ -377,6 +376,10 @@ const ExcalidrawWrapper = () => {
   const [errorMessage, setErrorMessage] = useState("");
   const isCollabDisabled = isRunningInIframe();
 
+  const [session] = useState(() => parseFragmentAuth() || getSession());
+  const [currentETag, setCurrentETag] = useState<string | null>(null);
+  const [showFilePicker, setShowFilePicker] = useState(false);
+
   const { editorTheme, appTheme, setAppTheme } = useHandleAppTheme();
 
   const [langCode, setLangCode] = useAppLangCode();
@@ -434,6 +437,66 @@ const ExcalidrawWrapper = () => {
       forceRefresh((prev) => !prev);
     }
   }, [excalidrawAPI]);
+
+  // ---------------------------------------------------------------------------
+  // Vault load
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!session?.filePath || !session?.projectId || !excalidrawAPI) return;
+
+    loadFromVault(session.projectId, session.filePath)
+      .then(({ content, etag }) => {
+        setCurrentETag(etag);
+        try {
+          const sceneData = JSON.parse(content);
+          if (sceneData.elements) {
+            excalidrawAPI.updateScene({
+              elements: sceneData.elements,
+              appState: sceneData.appState,
+            });
+          }
+        } catch (e) {
+          console.error("Failed to parse .excalidraw file:", e);
+        }
+      })
+      .catch((err) => {
+        console.error("Failed to load from vault:", err);
+      });
+  }, [session?.filePath, session?.projectId, excalidrawAPI]);
+
+  // ---------------------------------------------------------------------------
+  // Auto-save to vault
+  // ---------------------------------------------------------------------------
+  useEffect(() => {
+    if (!session?.projectId || !session?.filePath || !excalidrawAPI) return;
+
+    const interval = setInterval(() => {
+      const elements = excalidrawAPI.getSceneElements();
+      const appState = excalidrawAPI.getAppState();
+      const files = excalidrawAPI.getFiles();
+
+      const content = JSON.stringify({
+        type: "excalidraw",
+        version: 2,
+        source: "engenai-draw",
+        elements,
+        appState: { viewBackgroundColor: appState.viewBackgroundColor },
+        files,
+      });
+
+      saveToVault(session.projectId, session.filePath, content, currentETag || undefined)
+        .then(({ etag }) => setCurrentETag(etag))
+        .catch((err) => {
+          if (err.message.includes("409")) {
+            console.warn("Save conflict — will retry on next interval");
+          } else {
+            console.error("Auto-save failed:", err);
+          }
+        });
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [session?.projectId, session?.filePath, excalidrawAPI, currentETag]);
 
   // ---------------------------------------------------------------------------
   // Hoisted loadImages
@@ -862,44 +925,9 @@ const ExcalidrawWrapper = () => {
     );
   }
 
-  const ExcalidrawPlusCommand = {
-    label: "Excalidraw+",
-    category: DEFAULT_CATEGORIES.links,
-    predicate: true,
-    icon: <div style={{ width: 14 }}>{ExcalLogo}</div>,
-    keywords: ["plus", "cloud", "server"],
-    perform: () => {
-      window.open(
-        `${
-          import.meta.env.VITE_APP_PLUS_LP
-        }/plus?utm_source=excalidraw&utm_medium=app&utm_content=command_palette`,
-        "_blank",
-      );
-    },
-  };
-  const ExcalidrawPlusAppCommand = {
-    label: "Sign up",
-    category: DEFAULT_CATEGORIES.links,
-    predicate: true,
-    icon: <div style={{ width: 14 }}>{ExcalLogo}</div>,
-    keywords: [
-      "excalidraw",
-      "plus",
-      "cloud",
-      "server",
-      "signin",
-      "login",
-      "signup",
-    ],
-    perform: () => {
-      window.open(
-        `${
-          import.meta.env.VITE_APP_PLUS_APP
-        }?utm_source=excalidraw&utm_medium=app&utm_content=command_palette`,
-        "_blank",
-      );
-    },
-  };
+  if (!session) {
+    return <UnauthScreen />;
+  }
 
   return (
     <div
@@ -1129,104 +1157,12 @@ const ExcalidrawWrapper = () => {
               },
             },
             {
-              label: "GitHub",
-              icon: GithubIcon,
+              label: "Open from Vault",
               category: DEFAULT_CATEGORIES.links,
               predicate: true,
-              keywords: [
-                "issues",
-                "bugs",
-                "requests",
-                "report",
-                "features",
-                "social",
-                "community",
-              ],
+              keywords: ["vault", "open", "file", "project"],
               perform: () => {
-                window.open(
-                  "https://github.com/excalidraw/excalidraw",
-                  "_blank",
-                  "noopener noreferrer",
-                );
-              },
-            },
-            {
-              label: t("labels.followUs"),
-              icon: XBrandIcon,
-              category: DEFAULT_CATEGORIES.links,
-              predicate: true,
-              keywords: ["twitter", "contact", "social", "community"],
-              perform: () => {
-                window.open(
-                  "https://x.com/excalidraw",
-                  "_blank",
-                  "noopener noreferrer",
-                );
-              },
-            },
-            {
-              label: t("labels.discordChat"),
-              category: DEFAULT_CATEGORIES.links,
-              predicate: true,
-              icon: DiscordIcon,
-              keywords: [
-                "chat",
-                "talk",
-                "contact",
-                "bugs",
-                "requests",
-                "report",
-                "feedback",
-                "suggestions",
-                "social",
-                "community",
-              ],
-              perform: () => {
-                window.open(
-                  "https://discord.gg/UexuTaE",
-                  "_blank",
-                  "noopener noreferrer",
-                );
-              },
-            },
-            {
-              label: "YouTube",
-              icon: youtubeIcon,
-              category: DEFAULT_CATEGORIES.links,
-              predicate: true,
-              keywords: ["features", "tutorials", "howto", "help", "community"],
-              perform: () => {
-                window.open(
-                  "https://youtube.com/@excalidraw",
-                  "_blank",
-                  "noopener noreferrer",
-                );
-              },
-            },
-            ...(isExcalidrawPlusSignedUser
-              ? [
-                  {
-                    ...ExcalidrawPlusAppCommand,
-                    label: "Sign in / Go to Excalidraw+",
-                  },
-                ]
-              : [ExcalidrawPlusCommand, ExcalidrawPlusAppCommand]),
-
-            {
-              label: t("overwriteConfirm.action.excalidrawPlus.button"),
-              category: DEFAULT_CATEGORIES.export,
-              icon: exportToPlus,
-              predicate: true,
-              keywords: ["plus", "export", "save", "backup"],
-              perform: () => {
-                if (excalidrawAPI) {
-                  exportToExcalidrawPlus(
-                    excalidrawAPI.getSceneElements(),
-                    excalidrawAPI.getAppState(),
-                    excalidrawAPI.getFiles(),
-                    excalidrawAPI.getName(),
-                  );
-                }
+                setShowFilePicker(true);
               },
             },
             {
@@ -1262,6 +1198,19 @@ const ExcalidrawWrapper = () => {
           />
         )}
       </Excalidraw>
+      {showFilePicker && (
+        <VaultFilePicker
+          onSelect={(path) => {
+            setShowFilePicker(false);
+            if (session) {
+              setFilePath(path);
+              window.location.hash = `#token=${session.token}&project=${session.projectId}&path=${encodeURIComponent(path)}`;
+              window.location.reload();
+            }
+          }}
+          onClose={() => setShowFilePicker(false)}
+        />
+      )}
     </div>
   );
 };

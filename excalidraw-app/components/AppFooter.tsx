@@ -1,8 +1,6 @@
 import { Footer } from "@excalidraw/excalidraw/index";
 import React from "react";
 
-import { isExcalidrawPlusSignedUser } from "../app_constants";
-
 import { DebugFooter, isVisualDebuggerEnabled } from "./DebugCanvas";
 import { EncryptedIcon } from "./EncryptedIcon";
 
@@ -18,7 +16,20 @@ export const AppFooter = React.memo(
           }}
         >
           {isVisualDebuggerEnabled() && <DebugFooter onChange={onChange} />}
-          {!isExcalidrawPlusSignedUser && <EncryptedIcon />}
+          <EncryptedIcon />
+          <a
+            href="https://excalidraw.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              fontSize: "0.7rem",
+              opacity: 0.6,
+              textDecoration: "none",
+              color: "inherit",
+            }}
+          >
+            Powered by Excalidraw
+          </a>
         </div>
       </Footer>
     );
