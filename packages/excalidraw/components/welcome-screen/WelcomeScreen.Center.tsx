@@ -72,6 +72,13 @@ const WelcomeScreenMenuItemLink = ({
   icon?: JSX.Element;
   shortcut?: string | null;
 } & React.AnchorHTMLAttributes<HTMLAnchorElement>) => {
+  if (
+    href.includes("plus.excalidraw.com") ||
+    /\/plus(?:[/?#]|$)/.test(href)
+  ) {
+    return null;
+  }
+
   return (
     <a
       {...props}

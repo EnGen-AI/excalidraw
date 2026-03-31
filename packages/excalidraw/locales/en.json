@@ -195,7 +195,7 @@
   },
   "library": {
     "noItems": "No items added yet...",
-    "hint_emptyLibrary": "Select an item on canvas to add it here, or install a library from the public repository, below.",
+    "hint_emptyLibrary": "Select an item on canvas to add it here, or import a local library file from the EnGenAI workbench.",
     "hint_emptyPrivateLibrary": "Select an item on canvas to add it here.",
     "search": {
       "inputPlaceholder": "Search library",
@@ -276,7 +276,7 @@
     "removeItemsFromsLibrary": "Delete {{count}} item(s) from library?",
     "invalidEncryptionKey": "Encryption key must be of 22 characters. Live collaboration is disabled.",
     "collabOfflineWarning": "No internet connection available.\nYour changes will not be saved!",
-    "localStorageQuotaExceeded": "Browser storage quota exceeded. Changes will not be saved."
+    "localStorageQuotaExceeded": "Browser storage is full. Export or save your drawing from the EnGenAI workbench to avoid losing changes."
   },
   "errors": {
     "unsupportedFileType": "Unsupported file type.",
@@ -522,8 +522,8 @@
     }
   },
   "encrypted": {
-    "tooltip": "Your drawings are end-to-end encrypted so Excalidraw's servers will never see them.",
-    "link": "Blog post on end-to-end encryption in Excalidraw"
+    "tooltip": "Your diagram data stays in the browser unless you explicitly save or export it through EnGenAI.",
+    "link": "Encryption details"
   },
   "stats": {
     "angle": "Angle",

@@ -1,5 +1,7 @@
 import React from "react";
 
+import { EnGenAIDrawLogo } from "./EnGenAIDrawLogo";
+
 export const UnauthScreen: React.FC = () => {
   return (
     <div
@@ -14,9 +16,9 @@ export const UnauthScreen: React.FC = () => {
         color: "#e0e0e0",
       }}
     >
-      <h1 style={{ fontSize: "2rem", marginBottom: "0.5rem" }}>
-        EnGenAI Draw
-      </h1>
+      <div style={{ marginBottom: "1rem", color: "#f3fffb" }}>
+        <EnGenAIDrawLogo height={64} />
+      </div>
       <p
         style={{
           fontSize: "1.1rem",
@@ -41,15 +43,6 @@ export const UnauthScreen: React.FC = () => {
       >
         Go to Workbench
       </a>
-      <p
-        style={{
-          marginTop: "3rem",
-          fontSize: "0.75rem",
-          opacity: 0.4,
-        }}
-      >
-        Powered by Excalidraw
-      </p>
     </div>
   );
 };

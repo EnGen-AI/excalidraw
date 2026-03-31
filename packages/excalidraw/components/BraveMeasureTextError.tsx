@@ -16,25 +16,15 @@ const BraveMeasureTextError = () => {
         />
       </p>
       <p>
-        <Trans
-          i18nKey="errors.brave_measure_text_error.line3"
-          link={(el) => (
-            <a href="http://docs.excalidraw.com/docs/@excalidraw/excalidraw/faq#turning-off-aggresive-block-fingerprinting-in-brave-browser">
-              {el}
-            </a>
-          )}
-        />
+        We strongly recommend disabling this setting. If you need the exact
+        steps, contact{" "}
+        <a href="mailto:support@engenai.app">EnGenAI support</a>.
       </p>
       <p>
-        <Trans
-          i18nKey="errors.brave_measure_text_error.line4"
-          issueLink={(el) => (
-            <a href="https://github.com/excalidraw/excalidraw/issues/new">
-              {el}
-            </a>
-          )}
-          discordLink={(el) => <a href="https://discord.gg/UexuTaE">{el}.</a>}
-        />
+        If disabling this setting does not fix text rendering, open an{" "}
+        <a href="https://github.com/EnGen-AI/excalidraw/issues/new">issue</a>{" "}
+        in the EnGenAI Draw fork or contact{" "}
+        <a href="mailto:support@engenai.app">support</a>.
       </p>
     </div>
   );

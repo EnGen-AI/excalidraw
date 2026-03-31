@@ -2,6 +2,8 @@ import { useI18n } from "@excalidraw/excalidraw/i18n";
 import { WelcomeScreen } from "@excalidraw/excalidraw/index";
 import React from "react";
 
+import { EnGenAIDrawLogo } from "./EnGenAIDrawLogo";
+
 export const AppWelcomeScreen: React.FC<{
   onCollabDialogOpen: () => any;
   isCollabEnabled: boolean;
@@ -17,8 +19,8 @@ export const AppWelcomeScreen: React.FC<{
       <WelcomeScreen.Hints.HelpHint />
       <WelcomeScreen.Center>
         <WelcomeScreen.Center.Logo>
-          <div style={{ fontSize: "2rem", fontWeight: 700 }}>
-            EnGenAI Draw
+          <div style={{ color: "var(--color-logo-text)" }}>
+            <EnGenAIDrawLogo height={56} />
           </div>
         </WelcomeScreen.Center.Logo>
         <WelcomeScreen.Center.Heading>

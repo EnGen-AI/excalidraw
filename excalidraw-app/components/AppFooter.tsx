@@ -17,19 +17,15 @@ export const AppFooter = React.memo(
         >
           {isVisualDebuggerEnabled() && <DebugFooter onChange={onChange} />}
           <EncryptedIcon />
-          <a
-            href="https://excalidraw.com"
-            target="_blank"
-            rel="noopener noreferrer"
+          <span
             style={{
               fontSize: "0.7rem",
               opacity: 0.6,
-              textDecoration: "none",
               color: "inherit",
             }}
           >
-            Powered by Excalidraw
-          </a>
+            EnGenAI Draw
+          </span>
         </div>
       </Footer>
     );

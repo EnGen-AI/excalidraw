@@ -386,7 +386,7 @@ const PublishLibrary = ({
               i18nKey="publishDialog.noteDescription"
               link={(el) => (
                 <a
-                  href="https://libraries.excalidraw.com"
+                  href="https://github.com/EnGen-AI/excalidraw/tree/engenai-draw-vault"
                   target="_blank"
                   rel="noopener"
                 >
@@ -400,7 +400,7 @@ const PublishLibrary = ({
               i18nKey="publishDialog.noteGuidelines"
               link={(el) => (
                 <a
-                  href="https://github.com/excalidraw/excalidraw-libraries#guidelines"
+                  href="https://github.com/EnGen-AI/excalidraw/blob/engenai-draw-vault/CONTRIBUTING.md"
                   target="_blank"
                   rel="noopener noreferrer"
                 >
@@ -505,7 +505,7 @@ const PublishLibrary = ({
                 i18nKey="publishDialog.noteLicense"
                 link={(el) => (
                   <a
-                    href="https://github.com/excalidraw/excalidraw-libraries/blob/main/LICENSE"
+                    href="https://github.com/EnGen-AI/excalidraw/blob/engenai-draw-vault/LICENSE"
                     target="_blank"
                     rel="noopener noreferrer"
                   >

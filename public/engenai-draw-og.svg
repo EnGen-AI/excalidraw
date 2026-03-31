@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" role="img" aria-labelledby="title desc">
+  <title id="title">EnGenAI Draw open graph image</title>
+  <desc id="desc">EnGenAI Draw branded social card.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#041e24"/>
+      <stop offset="100%" stop-color="#0f3840"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0a2e36" stop-opacity="0.98"/>
+      <stop offset="100%" stop-color="#104651" stop-opacity="0.9"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="630" fill="url(#bg)"/>
+  <circle cx="1035" cy="116" r="180" fill="#58c29f" fill-opacity="0.08"/>
+  <circle cx="160" cy="520" r="220" fill="#58c29f" fill-opacity="0.07"/>
+  <rect x="80" y="72" width="1040" height="486" rx="28" fill="url(#panel)" stroke="#8ae0bf" stroke-opacity="0.18"/>
+  <g transform="translate(142 176)" fill="#e9faf4">
+    <path d="M34.27,10.57l-19.61,11.33v22.65l17.61,10.16v-11.91l-5.52-4.2c.06-.23.09-.47.09-.72,0-1.81-1.47-3.28-3.29-3.28s-3.28,1.47-3.28,3.28,1.47,3.29,3.28,3.29c.6,0,1.17-.16,1.65-.45l4.45,3.38v5.42l-11.68-6.74v-18.82l16.3-9.41,16.3,9.41v18.82l-11.67,6.73v-3.25l6.23-3.58v-9.71c1.2-.48,2.05-1.66,2.05-3.03,0-1.82-1.47-3.29-3.28-3.29-.63,0-1.23.18-1.73.5l-5.1-4.58c.08-.29.13-.59.13-.91,0-1.82-1.47-3.29-3.29-3.29s-3.28,1.47-3.28,3.29,1.47,3.28,3.28,3.28c.53,0,1.04-.13,1.48-.35l5.28,4.74c-.04.2-.06.4-.06.61,0,1.31.77,2.44,1.89,2.96v8.11l-6.23,3.5v10.14l3.04-1.69,14.58-8.41v-22.65l-19.62-11.33Z"/>
+    <path d="M34.84,31.65c-.57,0-1.11.15-1.58.41l-4.19-3.63c.08-.27.12-.56.12-.85,0-1.81-1.47-3.29-3.28-3.29s-3.29,1.48-3.29,3.29,1.47,3.28,3.29,3.28c.55,0,1.07-.13,1.52-.37l4.23,3.66c-.07.25-.1.51-.1.78,0,1.82,1.47,3.29,3.28,3.29s3.29-1.47,3.29-3.29-1.47-3.28-3.29-3.28Z"/>
+  </g>
+  <text x="250" y="248" fill="#f2fffb" font-family="Assistant, 'Avenir Next', 'Segoe UI', sans-serif" font-size="76" font-weight="700">EnGenAI</text>
+  <text x="668" y="252" fill="#58c29f" font-family="Excalifont, Virgil, 'Chalkboard SE', 'Bradley Hand', 'Comic Sans MS', cursive" font-size="86" letter-spacing="0.8">Draw</text>
+  <text x="142" y="338" fill="#d8f6eb" font-family="Assistant, 'Avenir Next', 'Segoe UI', sans-serif" font-size="28" font-weight="500">A secure visual workspace for architecture, flows, and product thinking.</text>
+  <text x="142" y="396" fill="#90dabc" font-family="Assistant, 'Avenir Next', 'Segoe UI', sans-serif" font-size="22">draw.engenai.app</text>
+  <rect x="142" y="444" width="294" height="52" rx="26" fill="#12353c" stroke="#58c29f" stroke-opacity="0.3"/>
+  <text x="289" y="476" fill="#f2fffb" font-family="Assistant, 'Avenir Next', 'Segoe UI', sans-serif" font-size="22" font-weight="600" text-anchor="middle">Branded whiteboard</text>
+  <rect x="458" y="444" width="308" height="52" rx="26" fill="#12353c" stroke="#58c29f" stroke-opacity="0.3"/>
+  <text x="612" y="476" fill="#f2fffb" font-family="Assistant, 'Avenir Next', 'Segoe UI', sans-serif" font-size="22" font-weight="600" text-anchor="middle">Vault-friendly editor</text>
+  <rect x="788" y="444" width="262" height="52" rx="26" fill="#12353c" stroke="#58c29f" stroke-opacity="0.3"/>
+  <text x="919" y="476" fill="#f2fffb" font-family="Assistant, 'Avenir Next', 'Segoe UI', sans-serif" font-size="22" font-weight="600" text-anchor="middle">No upstream promos</text>
+</svg>

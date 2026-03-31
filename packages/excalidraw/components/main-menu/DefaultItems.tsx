@@ -39,7 +39,7 @@ import DropdownMenuItemCheckbox from "../dropdownMenu/DropdownMenuItemCheckbox";
 import DropdownMenuItemContentRadio from "../dropdownMenu/DropdownMenuItemContentRadio";
 import DropdownMenuItemLink from "../dropdownMenu/DropdownMenuItemLink";
 import DropdownMenuSub from "../dropdownMenu/DropdownMenuSub";
-import { GithubIcon, DiscordIcon, XBrandIcon, settingsIcon } from "../icons";
+import { ExternalLinkIcon, GithubIcon, settingsIcon } from "../icons";
 import {
   boltIcon,
   DeviceDesktopIcon,
@@ -354,30 +354,28 @@ export const Export = () => {
 Export.displayName = "Export";
 
 export const Socials = () => {
-  const { t } = useI18n();
-
   return (
     <>
       <DropdownMenuItemLink
+        icon={ExternalLinkIcon}
+        href="https://engenai.app"
+        aria-label="EnGenAI"
+      >
+        EnGenAI
+      </DropdownMenuItemLink>
+      <DropdownMenuItemLink
+        icon={ExternalLinkIcon}
+        href="https://app.engenai.app/login"
+        aria-label="Workbench"
+      >
+        Workbench
+      </DropdownMenuItemLink>
+      <DropdownMenuItemLink
         icon={GithubIcon}
-        href="https://github.com/excalidraw/excalidraw"
-        aria-label="GitHub"
+        href="https://github.com/EnGen-AI/excalidraw/tree/engenai-draw-vault"
+        aria-label="Source"
       >
-        GitHub
-      </DropdownMenuItemLink>
-      <DropdownMenuItemLink
-        icon={XBrandIcon}
-        href="https://x.com/excalidraw"
-        aria-label="X"
-      >
-        {t("labels.followUs")}
-      </DropdownMenuItemLink>
-      <DropdownMenuItemLink
-        icon={DiscordIcon}
-        href="https://discord.gg/UexuTaE"
-        aria-label="Discord"
-      >
-        {t("labels.discordChat")}
+        Source
       </DropdownMenuItemLink>
     </>
   );
