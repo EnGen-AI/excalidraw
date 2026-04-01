@@ -5,7 +5,7 @@
  * import graph so App.tsx builds without changes.
  */
 
-import React from "react";
+import type { FC } from "react";
 
 import type {
   NonDeletedExcalidrawElement,
@@ -25,7 +25,7 @@ export const exportToExcalidrawPlus = async (
   console.info("Export to Excalidraw+ is not available in self-hosted mode.");
 };
 
-export const ExportToExcalidrawPlus: React.FC<{
+export const ExportToExcalidrawPlus: FC<{
   elements: readonly NonDeletedExcalidrawElement[];
   appState: Partial<AppState>;
   files: BinaryFiles;
