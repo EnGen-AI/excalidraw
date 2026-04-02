@@ -15,12 +15,54 @@ export interface DrawSession {
   filePath: string;
 }
 
+export function normalizeTokenValue(
+  rawToken: string | null | undefined,
+): string | null {
+  if (!rawToken) {
+    return null;
+  }
+
+  const trimmed = rawToken.trim();
+  if (!trimmed) {
+    return null;
+  }
+
+  try {
+    const parsed = JSON.parse(trimmed) as { token?: unknown };
+    if (typeof parsed.token === "string" && parsed.token.trim()) {
+      return parsed.token;
+    }
+  } catch {
+    // Raw JWTs are not JSON. Keep the original value.
+  }
+
+  return trimmed;
+}
+
+function readStoredToken(): string | null {
+  const rawToken = sessionStorage.getItem(TOKEN_KEY);
+  const normalizedToken = normalizeTokenValue(rawToken);
+
+  if (!normalizedToken) {
+    if (rawToken) {
+      sessionStorage.removeItem(TOKEN_KEY);
+    }
+    return null;
+  }
+
+  if (rawToken !== normalizedToken) {
+    sessionStorage.setItem(TOKEN_KEY, normalizedToken);
+  }
+
+  return normalizedToken;
+}
+
 export function parseFragmentAuth(): DrawSession | null {
   const hash = window.location.hash.slice(1);
   if (!hash) return null;
 
   const params = new URLSearchParams(hash);
-  const token = params.get("token");
+  const token = normalizeTokenValue(params.get("token"));
   const projectId = params.get("project");
   const filePath = params.get("path");
 
@@ -30,13 +72,17 @@ export function parseFragmentAuth(): DrawSession | null {
 
   sessionStorage.setItem(TOKEN_KEY, token);
   sessionStorage.setItem(PROJECT_KEY, projectId);
-  if (filePath) sessionStorage.setItem(PATH_KEY, filePath);
+  if (filePath) {
+    sessionStorage.setItem(PATH_KEY, filePath);
+  } else {
+    sessionStorage.removeItem(PATH_KEY);
+  }
 
   return { token, projectId, filePath: filePath || "" };
 }
 
 export function getSession(): DrawSession | null {
-  const token = sessionStorage.getItem(TOKEN_KEY);
+  const token = readStoredToken();
   const projectId = sessionStorage.getItem(PROJECT_KEY);
   if (!token || !projectId) return null;
   return {
@@ -47,7 +93,7 @@ export function getSession(): DrawSession | null {
 }
 
 export function getToken(): string | null {
-  return sessionStorage.getItem(TOKEN_KEY);
+  return readStoredToken();
 }
 
 export function getProjectId(): string | null {
@@ -69,5 +115,5 @@ export function clearSession(): void {
 }
 
 export function isAuthenticated(): boolean {
-  return !!sessionStorage.getItem(TOKEN_KEY);
+  return !!readStoredToken();
 }
